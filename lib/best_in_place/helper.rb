@@ -13,12 +13,15 @@ module BestInPlace
       real_object = real_object_for object
       opts[:type] ||= :input
       opts[:collection] ||= []
+      opts[:collection_classes] ||= []
       field = field.to_s
 
       display_value = build_value_for(real_object, field, opts)
 
       collection = nil
+      collection_classes = nil
       value = nil
+      classes = ["best_in_place"]
       if opts[:type] == :select && !opts[:collection].blank?
         value = real_object.send(field)
         display_value = Hash[opts[:collection]].stringify_keys[value.to_s]
@@ -29,10 +32,13 @@ module BestInPlace
         if opts[:collection].blank? || opts[:collection].size != 2
           opts[:collection] = ["No", "Yes"]
         end
+        if opts[:collection_classes].size == 2
+          classes << opts[:collection_classes][value ? 1 : 0]
+          collection_classes = opts[:collection_classes].to_json
+        end
         display_value = value ? opts[:collection][1] : opts[:collection][0]
         collection = opts[:collection].to_json
       end
-      classes = ["best_in_place"]
       unless opts[:classes].nil?
         # the next three lines enable this opt to handle both a stings and a arrays
         classes << opts[:classes]
@@ -44,6 +50,7 @@ module BestInPlace
       out << " data-url='#{opts[:path].blank? ? url_for(object) : url_for(opts[:path])}'"
       out << " data-object='#{opts[:object_name] || BestInPlace::Utils.object_to_key(real_object)}'"
       out << " data-collection='#{attribute_escape(collection)}'" unless collection.blank?
+      out << " data-collection-classes='#{attribute_escape(collection_classes)}'" unless collection_classes.blank?
       out << " data-attribute='#{field}'"
       out << " data-activator='#{opts[:activator]}'" unless opts[:activator].blank?
       out << " data-ok-button='#{opts[:ok_button]}'" unless opts[:ok_button].blank?
